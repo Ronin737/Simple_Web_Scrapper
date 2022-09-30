@@ -1,34 +1,11 @@
 from urllib.request import urlopen
 from django.http import JsonResponse
-from django.utils import timezone
-from .models import Page_Data
 
 source_url = "https://time.com"
 
 def get_stories(request):
-    page_data = None
-    current_ts = timezone.now()
-    queryset = Page_Data.objects.all()
-    nearest = 0
-    for data in queryset:
-        ts_difference = (current_ts - data.created_at).total_seconds()
-        if ts_difference >= 1800:
-            continue
-        if nearest == 0:
-            nearest = ts_difference
-            page_data = data.scraped_data
-        else:
-            if nearest > ts_difference:
-                nearest = ts_difference
-                page_data = data.scraped_data
-    
-    if not page_data:
-        page = urlopen(source_url)
-        page_content = page.read().decode("utf-8")
-        new_page_model = Page_Data.objects.create(scraped_data=page_content)
-        new_page_model.save()
-        page_data = page_content
-
+    page = urlopen(source_url)
+    page_data = page.read().decode("utf-8")
     ptr_start = 0
     find = lambda keyword,start: page_data.find(keyword, start)
     list_of_stories = []
